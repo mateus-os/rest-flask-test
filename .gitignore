@@ -1,4 +1,7 @@
 .vscode/
+.idea/
+.idea/*
 __pycache__/
 *.pyc
+*.iml
 data.db
