@@ -4,9 +4,12 @@ from flask_jwt_extended import (
     create_access_token,
     create_refresh_token,
     jwt_refresh_token_required,
-    get_jwt_identity
+    get_jwt_identity,
+    jwt_required,
+    get_raw_jwt
 )
 from model.user import UserModel
+from denylist import DENYLIST
 
 _user_parser = reqparse.RequestParser()
 _user_parser.add_argument(
@@ -64,11 +67,19 @@ class UserLogin(Resource):
             access_token = create_access_token(identity=user.id, fresh=True)
             refresh_token = create_refresh_token(user.id)
             return {
-                'access_token': access_token,
-                'refresh_token': refresh_token
-            }, 200
+                       'access_token': access_token,
+                       'refresh_token': refresh_token
+                   }, 200
 
         return {'message': 'Invalid credentials'}, 401
+
+
+class UserLogout(Resource):
+    @jwt_required
+    def post(self):
+        jti = get_raw_jwt()['jti']  # JWT unique identifier
+        DENYLIST.add(jti)
+        return {'message': 'Successfully logged out.'}
 
 
 class TokenRefresh(Resource):
